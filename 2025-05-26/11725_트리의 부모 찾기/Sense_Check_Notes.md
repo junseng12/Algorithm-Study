@@ -18,7 +18,6 @@ def dfs(node):
 ```
 
 - `parent[]`: 현재 노드가 어디서 왔는지(부모)를 기록
-- `selected[]`: 현재 구성 요소에 어떤 노드가 포함되었는지를 기록
 - DFS는 단순 방문이 아니라, **정보를 "흘려보내는 통로"**
 
 ---
@@ -53,6 +52,8 @@ parent[next] = node
 
 # 구성 요소 누적
 selected[node][1].extend(selected[child][0])
+
+>> selected[]: 현재 구성 요소에 어떤 노드가 포함되었는지를 기록
 
 # 서브트리 크기
 dp[node] = 1 + sum(dp[child] for child in children)
