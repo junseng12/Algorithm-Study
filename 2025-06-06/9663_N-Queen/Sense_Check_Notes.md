@@ -94,5 +94,3 @@ if row == N:
 | ✅ 탐색 대상       | 현재 row에서 놓을 수 있는 col 후보 순회                                  |
 | ✅ 기저 조건       | row == N → 성공 배치 count 증가                                          |
 | ✅ 특이 요소       | 대각선 index 계산 정확성 필요 / visited\[row]는 불필요 / graph 탐색 아님 |
-
----
