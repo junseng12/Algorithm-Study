@@ -1,97 +1,74 @@
-# Problem: 4195_친구 네트워크
-# Date: 2025-06-15
+# Problem:  2533_사회망 서비스
+# Date: 2025-06-16
 # Language: Python 3
 
 # 조건
-# 어떤 사이트의 친구 관계가 생긴 순서대로 주어졌을 때, 두 사람의 친구 네트워크에 몇 명이 있는지 구하라
-# 친구 네트워크: 친구 관계만으로 이동할 수 있는 사이
+#  얼리 아답터(early adaptor): 어떤 새로운 아이디어를 먼저 받아들인 사람
+# 사회망 서비스에 속한 사람들은 얼리 아답터이거나 얼리 아답터가 아니다. 
+# 얼리 아답터가 아닌 사람들은 자신의 모든 친구들이 얼리 아답터일 때만 이 아이디어를 받아들임
+
+# 어떤 아이디어를 사회망 서비스에서 퍼뜨리고자 할 때, 
+# 가능한 한 최소의 수의 얼리 아답터를 확보하여 모든 사람이 이 아이디어를 받아들이게 하는 문제
+
+# 일반적인 그래프에서 이 문제를 푸는 것이 매우 어렵다는 것이 알려져 있기 때문에, 
+# 친구 관계 그래프가 트리인 경우, 
+# => 즉 모든 두 정점 사이에 이들을 잇는 경로가 존재하면서 사이클이 존재하지 않는 경우만 고려함
+
+## 친구 관계 트리가 주어졌을 때, 모든 개인이 새로운 아이디어를 수용하기 위하여 필요한 최소 얼리 어답터의 수를 구하라
 
 # 가정
-# 첫째 줄; 테스트 케이스의 개수
-# 각 테스트 케이스의 첫째 줄: 친구 관계의 수 F(100,000을 넘지 않음)
-# 다음 F개의 줄에는 친구 관계가 생긴 순서대로 주어짐
-# 친구 관계: 두 사용자의 아이디로 이루어짐
-# 아이디 구성 - 알파벳 대문자 또는 소문자로만 이루어진 길이 20 이하의 문자열
+# 첫 번째 줄: 친구 관계 트리의 정점 개수 N (2 ≤ N ≤ 1,000,000)
+# 각 정점은 1부터 N까지 일련번호로 표현
+
+# 두 번째 줄~ (N-1개의 줄): 각 줄마다 친구 관계 트리의 에지 (u, v)
 
 # 아이디어 : 
+# 트리 구조에서 정의함(보니까 노드 1번을 루트로 설정하고 시작하면 될 듯)
+# 본인과 인접한 모든 노드들이 얼리어답터여야 새로운 아이디어를 수용할 수 있음
+# 가능한 최소 노드로 얼리어 답터가 아닌 모든 사람들이 새로운 아이디어를 수용하게 만들려면... 
+# 일단 가장 많이 노드들과 인접한 노드부터 얼리어답터로 설정하는 것이 최소 노드에 도달하는 빠른 길 아닌가?
+# DP 적 관점으로 밖에 생각이 안남
 
-
-
-# 변수 구성
-# Union-Find 로 풀이하는 문제임을 느꼈음. (각 서브 그룹 끼리 관계 집합을 점점 넓혀가면서 진행하는 느낌) 
-# 각 친구 관계 집합에 다른 집합을 합집합하는 것인데.. 
-# 합집합 할 때 루트가 같은 경우 그러니까, 같은 연결고리가 있는 경우에 집단 숫자를 늘릴 수 있음
-# 두 사용자 A, B 놔두고... 뭔가 string으로 처리하니까 dict 자료구조 사용해서 빠르게 탐색도 할 수 있는 방안으로 진행하면 될 것 같음
-# dict 자료구조가 리스트처럼 자료 추가하고 value 값 넣을 수 있는 듯하여.. union과 find 함수는 그대로 이용해도 되지 않을까 함
-
-
-
-# # parent[x] >> parent.values(x) != x
-# # parent.update({x: find(parent.values(x))})
-# def find(x):
-#     if parent.values(x) != x:
-#         parent.update({x: find(parent.values(x))})  # 경로 압축
-#     return parent.values(x)
-
-# # parent[y_root] = x_root >> parent.update({y_root: x_root})
-# def union(x, y):
-#     x_root = find(x)
-#     y_root = find(y)
-#     if x_root != y_root:
-#       parent.update({y_root: x_root})  # 또는 rank 기준으로 최적화 가능
+# 트리 구조로부터 뽑을 수 있는 조건 구조
+# 노드가 얼리어답터 X → 자식 노드는 얼리어답터여야 조건 충족
+# 노드가 얼리어답터 O → 자식 노드는 자유롭게 선택 가능
 
 
 import sys
+from collections import defaultdict
+
+# 그래프 구성
+graph = defaultdict(list)
 
 input = sys.stdin.readline
 
 sys.setrecursionlimit(10**6)
 
-T = int(input())
+N = int(input())
 
-def find(x):
-    if parent[x] != x:
-        parent[x] = find(parent[x])  # 경로 압축
-    return parent[x]
+dp = [[0 for col in range(2)] for row in range(N+1) ]
 
-
-# union() 함수에서 바로 네트워크 크기 반환하도록 설계 추천 ->> 성능 : O(N) -> O(1)
-def union(x, y):
-    x_root = find(x)
-    y_root = find(y)
-    if x_root != y_root:
-        parent[y_root] = x_root  # 또는 rank 기준으로 최적화 가능
-        size[x_root] += size[y_root]
-
-def count_friend(x):
-    return size[find(x)]
+# 양방향 간선 연결 (트리이므로 방향 없음)
+for _ in range(N-1):
+    u, v = map(int, input().split())
+    graph[u].append(v)
+    graph[v].append(u)
 
 
-for i in range(T):
-  F = int(input())
-  parent = {}
-  size = {}
-  for _ in range(F):
-    A, B = map(str, input().split())
-    # A, B 모두 없을 수 있고, A만 없거나, B만 없거나,둘 다 있거나
-    if (A not in parent) and (B not in parent):
-      parent[A] = A
-      size[A] = 1
-      
-      parent[B] = B
-      size[B] = 1
-      union(A, B)
-    # 의미상 A가 B의 집합에 합병되는 느낌
-    elif A not in parent:
-      parent[A] = A
-      size[A] = 1
-      union(A, B)
-    # 의미상 B가 A의 집합에 합병되는 느낌
-    elif B not in parent:
-      parent[B] = B
-      size[B] = 1
-      union(B, A)
-    else:
-      union(A, B)
-    max_friend = count_friend(A)
-    print(max_friend)
+def dfs(node, parent):
+  dp[node][0] = 0  # 내가 얼리어답터 ❌
+  dp[node][1] = 1  # 내가 얼리어답터 ⭕
+    
+  for child in graph[node]:
+    if child == parent:
+      continue
+  
+    dfs(child, node)
+    
+    dp[node][0] += dp[child][1]
+    dp[node][1] += min(dp[child][0], dp[child][1])
+    
+    
+dfs(1, 0)
+
+print(min(dp[1][0], dp[1][1]))
