@@ -29,3 +29,11 @@ def dfs(node, parent):
             dp[node][0] += dp[child][1]
             dp[node][1] += min(dp[child][0], dp[child][1])
 ```
+
+- 루트 노드(보통 1번) 기준으로 min(dp[1][0], dp[1][1]) 출력
+
+## 🚩 4. 시간/공간 복잡도
+
+- 시간 복잡도: O(N) (트리 전체 DFS 1회)
+
+- 공간 복잡도: O(N) (dp 테이블, 그래프 인접 리스트)
