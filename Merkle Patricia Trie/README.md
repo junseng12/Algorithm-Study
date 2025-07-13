@@ -1,6 +1,8 @@
-# 📦 MPT_Concept.md
+# 📦 MPT Concept
 
 ## 📌 Modified Merkle Patricia Trie (MPT)란?
+
+![alt text](<Merkle Partricia Tree_Instruction.png>)
 
 Ethereum은 하나의 **state machine**이다.  
 계정, 컨트랙트 등 모든 상태(state)는 key-value 쌍으로 표현되며, 이를 저장·관리하기 위해 **Modified Merkle Patricia Trie (MPT)** 라는 특수한 자료구조를 사용한다.
@@ -30,8 +32,6 @@ MPT는:
 - root hash 하나로 전체 데이터셋의 무결성을 검증 가능.
 
 ### 3️⃣ MPT (Patricia Trie + Merkle Tree)
-
-![alt text](<Merkle Partricia Tree_Instruction.png>)
 
 - Patricia Trie의 prefix 압축 + Merkle Tree의 해시 무결성.
 - 각 노드: 자신의 내용과 자식 hash로부터 sha3 해시 생성.
@@ -150,6 +150,71 @@ prefix 경로는 nibble로 변환된 key, leaf node의 value는 상태 데이터
 
 ---
 
+## 💻 MPT 간단 Python 구현
+
+- MPT's Main IDEA (branch/extension/leaf + hash Management) implement Example
+
+```python
+import hashlib
+
+def sha3(data):
+    return hashlib.sha256(data.encode()).hexdigest()
+
+class Node:
+    def __init__(self, node_type, path='', value=None):
+        self.node_type = node_type  # 'branch', 'extension', 'leaf'
+        self.path = path  # shared nibble(s)
+        self.value = value  # value or child hash
+        self.children = {}  # for branch: {'a': Node, ...}
+        self.hash = None
+
+    def compute_hash(self):
+        if self.node_type == 'branch':
+            data = ''.join(sorted([c + child.hash for c, child in self.children.items()])) + (self.value or '')
+        else:
+            data = self.path + (self.value if self.node_type == 'leaf' else self.value.hash)
+        self.hash = sha3(data)
+        return self.hash
+
+# 예제: 0xBEA → 1000, 0xBEE → 2000
+
+# Leaf nodes
+leaf_a = Node('leaf', path='A', value='1000')
+leaf_e = Node('leaf', path='E', value='2000')
+leaf_a.compute_hash()
+leaf_e.compute_hash()
+
+# Branch node under BE
+branch = Node('branch')
+branch.children['A'] = leaf_a
+branch.children['E'] = leaf_e
+branch.compute_hash()
+
+# Extension node BE
+ext = Node('extension', path='BE', value=branch)
+ext.compute_hash()
+
+# Root hash
+print(f"Root hash: {ext.hash}")
+```
+
+### 🧩 이 코드에서 보여주는 핵심
+
+✅ leaf node: [path, value]  
+✅ extension node: [shared path, child]  
+✅ branch node: 16 slots + optional value  
+✅ 각 node의 hash: 자식 hash, path, value로 계산
+
+### ⚡ 주의
+
+- Ethereum 실제 MPT:
+  - nibble encoding (0x00, 0x1, 0x20, 0x3)
+  - sha3_256 (Keccak)
+  - RLP encoding
+  - levelDB, rocksDB에 key-value 저장
+
+---
+
 ## 🌟 최종 정리
 
 > MPT는 Ethereum의 state를  
@@ -157,3 +222,8 @@ prefix 경로는 nibble로 변환된 key, leaf node의 value는 상태 데이터
 > Merkle 해시로 무결성을 보장하며,  
 > 계정·storage 상태를 효율적으로 저장·검색하는  
 > 블록체인 핵심 자료구조이다.
+
+## Reference
+
+- https://hamait.tistory.com/959
+- https://medium.com/codechain-kr/modified-merkle-patricia-trie-ethereum%EC%9D%B4-%EC%83%81%ED%83%9C%EB%A5%BC-%EC%A0%80%EC%9E%A5%ED%95%98%EB%8A%94-%EB%B0%A9%EB%B2%95-e385f7d6bf84
