@@ -11,10 +11,13 @@ Boggle에서는 Trie로 prefix pruning하여 가지치기하며 탐색 효율 �
 ```python
 def dfs(x, y, node, word):
     if (범위 밖 or visited): return
+
     if (board[x][y] not in node.children): return
-    next_node = node.children[char]
+        next_node = node.children[char]
+
     if next_node.is_terminal:
         found_words.add(word)
+
     visited[x][y] = True
     for dir in 8방향:
         dfs(nx, ny, next_node, word + char)
